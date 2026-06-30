@@ -292,7 +292,7 @@ const PHASES = [
     ]
   },
   {
-    id:"account", title:"Account & Template", emoji:"🚀",
+    id:"account", title:"Account & Template ✅ (Done via Blueprint AI)", emoji:"🚀",
     steps:[
       { id:"acct-1", title:"Create your free Squarespace trial",
         detail:"Go to squarespace.com → click 'Start a Free Trial' (no credit card needed for 14 days).\n\nWhen prompted to pick a goal, select 'Create a portfolio or personal site' or 'Grow my business' — either works.\n\nCreate your account with Kevin@KevinHandley.com.",
@@ -303,6 +303,26 @@ const PHASES = [
       { id:"acct-3", title:"Name your site",
         detail:"Squarespace will ask for a site name during or right after template selection.\n\nEnter exactly:",
         copy:"Kevin Handley, Ph.D." }
+    ]
+  },
+  {
+    id:"blueprint-cleanup", title:"Clean Up Blueprint AI Output", emoji:"🧹",
+    steps:[
+      { id:"cleanup-1", title:"Delete the Shop page",
+        detail:"Blueprint AI created a 'Shop' page under Pages → Not Linked, even though we didn't select it during setup.\n\nIn the editor: Pages panel → find 'Shop' under Not Linked → click the three dots or trash icon → Delete Page.\n\nConfirm the deletion when prompted.",
+        tip:"This won't affect the Services page — that's a separate issue, handled in the next step." },
+      { id:"cleanup-2", title:"Remove the Acuity Scheduling widget from Home",
+        detail:"The Home page has an embedded booking widget ('1 hour @ $199.00' with a Book button, powered by Acuity Scheduling). This contradicts the decision not to offer online booking.\n\nIn the Home page editor, scroll to that section → click on it to select the block → click the three dots or gear icon → Delete Section (or Delete Block, depending on how it's structured).\n\nIf it's a full-width section, delete the whole section rather than just the booking widget inside it.",
+        tip:"If Squarespace also auto-created a 'Scheduling' / 'Acuity' connection under Settings, you can disconnect it there too — but deleting the section from the page is the essential step." },
+      { id:"cleanup-3", title:"Remove the 'Follow Our Professional Insights' blog section",
+        detail:"The Home page has a blog-style section with stock photos of unrelated people, under the heading 'Follow Our Professional Insights.' This wasn't part of the plan and isn't needed.\n\nClick on that section in the Home page editor → click the three dots or gear icon → Delete Section.",
+        tip:"If this section is tied to an actual Blog page Squarespace created, you can also delete that Blog page entirely from the Pages panel if you don't plan to write blog posts." },
+      { id:"cleanup-4", title:"Convert the Services page from a Store to a content page",
+        detail:"Blueprint AI built 'Services' as an ecommerce Store page with four priced products (Basic Service $99, Intermediate $149, Advanced $199, Advanced+ $249, each with 'Add to Cart' buttons). This is the wrong page type — it should be a normal content page, not a shop.\n\nEasiest fix: delete this Store page entirely. You're replacing it anyway with your real pages: Evaluations, Treatment, Sleep Health, Consulting & Training, Workshops, per the original 8-page plan.\n\nTo delete: Pages panel → Services → three dots → Delete Page.\n\nThen proceed to the 'Create All 8 Pages' phase below to build your actual page structure.",
+        tip:"Don't try to convert a Store page into a content page in place — Squarespace doesn't support that cleanly. Delete and rebuild is faster and avoids leftover ecommerce settings." },
+      { id:"cleanup-5", title:"Update the footer placeholder text",
+        detail:"The footer currently shows 'Your Site Title' and 'email@example.com' — unfilled placeholders from the AI build.\n\nQuick interim fix: click into the footer → replace 'Your Site Title' with 'Kevin B. Handley, Ph.D.' and the email placeholder with Kevin@KevinHandley.com.",
+        tip:"This is just a placeholder fix — the full footer build (phone, license number, nav links) happens in the Navigation & Footer phase." }
     ]
   },
   {
