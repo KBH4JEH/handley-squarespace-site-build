@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KevinHandley.com — WordPress Build Checklist</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #f0f2f5;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    font-size: 14px;
+    color: #1a1a2e;
+  }
+
+  /* ── Header ── */
+  #header {
+    background: #1E3A5F;
+    color: white;
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  #header-left h1 { font-size: 16px; font-weight: 700; letter-spacing: -0.2px; }
+  #header-left p  { font-size: 11px; opacity: 0.6; margin-top: 2px; }
+  #header-right   { display: flex; align-items: center; gap: 20px; }
+  #save-status    { font-size: 11px; opacity: 0.8; min-width: 110px; text-align: right; }
+  #progress-box   { text-align: right; }
+  #progress-pct   { font-size: 22px; font-weight: 700; line-height: 1; }
+  #progress-sub   { font-size: 11px; opacity: 0.6; margin-top: 2px; }
+
+  /* ── Progress bar ── */
+  #progress-bar-wrap { height: 4px; background: #2E5C8A; flex-shrink: 0; }
+  #progress-bar-fill { height: 100%; background: #5B8DB8; width: 0%; transition: width 0.5s ease; }
+
+  /* ── Layout ── */
+  #layout { display: flex; flex: 1; overflow: hidden; height: calc(100vh - 60px); }
+
+  /* ── Sidebar ── */
+  #sidebar {
+    width: 210px;
+    background: #19293d;
+    flex-shrink: 0;
+    overflow-y: auto;
+    padding: 10px 0;
+  }
+  .phase-btn {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    width: 100%;
+    padding: 9px 14px;
+    text-align: left;
+    border: none;
+    cursor: pointer;
+    background: transparent;
+    border-left: 3px solid transparent;
+    transition: all 0.15s;
+  }
+  .phase-btn:hover  { background: rgba(255,255,255,0.05); }
+  .phase-btn.active { background: #2E5C8A; border-left-color: #5B8DB8; }
+  .phase-btn .emoji { font-size: 13px; flex-shrink: 0; margin-top: 1px; }
+  .phase-btn .label { font-size: 12px; color: #8fafc7; line-height: 1.35; }
+  .phase-btn.active .label { color: white; font-weight: 600; }
+
+  /* ── Main ── */
+  #main { flex: 1; overflow-y: auto; padding: 20px 24px 40px; }
+
+  #phase-header { margin-bottom: 16px; }
+  #phase-title  { font-size: 19px; font-weight: 700; color: #1E3A5F; }
+  #phase-sub    { font-size: 12px; color: #6b7280; margin-top: 3px; }
+
+  /* ── Steps ── */
+  #steps-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .step-card {
+    background: white;
+    border-radius: 10px;
+    border: 2px solid #e5e7eb;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .step-card.done { border-color: #93c5fd; }
+
+  .step-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 16px;
+    cursor: pointer;
+    background: white;
+    transition: background 0.15s;
+  }
+  .step-card.done .step-header { background: #f0f7ff; }
+
+  .step-checkbox {
+    width: 22px; height: 22px;
+    border-radius: 5px;
+    border: 2px solid #d1d5db;
+    background: white;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-size: 13px; font-weight: bold; color: white;
+  }
+  .step-card.done .step-checkbox {
+    background: #2E5C8A;
+    border-color: #2E5C8A;
+  }
+
+  .step-num   { font-size: 11px; color: #9ca3af; flex-shrink: 0; width: 22px; }
+  .step-title { flex: 1; font-size: 13px; font-weight: 600; color: #1E3A5F; line-height: 1.35; }
+  .step-card.done .step-title { color: #3b82f6; text-decoration: line-through; opacity: 0.65; }
+  .step-arrow { font-size: 11px; color: #9ca3af; flex-shrink: 0; }
+
+  .step-body {
+    display: none;
+    padding: 12px 16px 16px 52px;
+    border-top: 1px solid #f3f4f6;
+  }
+  .step-body.open { display: block; }
+
+  .step-detail {
+    font-size: 13px;
+    color: #374151;
+    line-height: 1.7;
+    white-space: pre-wrap;
+  }
+
+  /* ── Copy block ── */
+  .copy-block {
+    margin-top: 12px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #bfdbfe;
+  }
+  .copy-block-header {
+    display: flex; align-items: center; justify-content: space-between;
+    background: #eff6ff;
+    padding: 6px 12px;
+  }
+  .copy-label { font-size: 11px; font-weight: 700; color: #1d4ed8; letter-spacing: 0.05em; text-transform: uppercase; }
+  .copy-btn {
+    font-size: 11px; padding: 3px 10px; border-radius: 4px;
+    border: none; background: #1d4ed8; color: white;
+    cursor: pointer; font-weight: 600; transition: background 0.15s;
+  }
+  .copy-btn:hover   { background: #1e40af; }
+  .copy-btn.copied  { background: #16a34a; }
+  .copy-pre {
+    background: white;
+    padding: 10px 12px;
+    margin: 0;
+    font-size: 12px;
+    color: #374151;
+    white-space: pre-wrap;
+    line-height: 1.6;
+    font-family: ui-monospace, "Cascadia Code", monospace;
+  }
+
+  /* ── Tip ── */
+  .tip {
+    margin-top: 10px;
+    padding: 9px 12px;
+    background: #fffbeb;
+    border-left: 3px solid #f59e0b;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #78350f;
+    line-height: 1.5;
+  }
+
+  /* ── Mark button ── */
+  .mark-btn {
+    margin-top: 14px;
+    padding: 7px 16px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    background: #2E5C8A;
+    color: white;
+    transition: all 0.15s;
+  }
+  .mark-btn:hover  { background: #1E3A5F; }
+  .mark-btn.undo   { background: #f3f4f6; color: #6b7280; }
+  .mark-btn.undo:hover { background: #e5e7eb; }
+
+  /* ── Phase nav ── */
+  #phase-nav {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+    padding-top: 10px;
+  }
+  .nav-btn {
+    padding: 8px 18px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .nav-btn.prev { border: 2px solid #2E5C8A; background: white; color: #2E5C8A; }
+  .nav-btn.prev:hover { background: #f0f7ff; }
+  .nav-btn.next { border: none; background: #2E5C8A; color: white; }
+  .nav-btn.next:hover { background: #1E3A5F; }
+
+  /* ── Loading ── */
+  #loading {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    height: 100vh; gap: 16px;
+    background: #f0f2f5;
+  }
+  .spinner {
+    width: 38px; height: 38px;
+    border: 3px solid #bfdbfe;
+    border-top-color: #2E5C8A;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #loading p { font-size: 14px; color: #6b7280; }
+
+  #app { display: none; flex-direction: column; min-height: 100vh; }
+
+  .banner {
+    background: #fffbeb;
+    border-bottom: 3px solid #f59e0b;
+    padding: 8px 24px;
+    font-size: 12px;
+    color: #78350f;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="spinner"></div>
+  <p>Loading your saved progress…</p>
+</div>
+
+<div id="app">
+  <div class="banner">🧭 Contingency path — use only if you decide to build in WordPress instead of Squarespace. Progress here is tracked separately from the Squarespace checklist.</div>
+  <div id="header">
+    <div id="header-left">
+      <h1>KevinHandley.com</h1>
+      <p>WordPress Build Checklist (Astra + Elementor)</p>
+    </div>
+    <div id="header-right">
+      <span id="save-status"></span>
+      <div id="progress-box">
+        <div id="progress-pct">0%</div>
+        <div id="progress-sub">0 of 0 steps</div>
+      </div>
+    </div>
+  </div>
+  <div id="progress-bar-wrap"><div id="progress-bar-fill"></div></div>
+  <div id="layout">
+    <div id="sidebar"></div>
+    <div id="main">
+      <div id="phase-header">
+        <div id="phase-title"></div>
+        <div id="phase-sub"></div>
+      </div>
+      <div id="steps-list"></div>
+      <div id="phase-nav"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── JSONBin config ──────────────────────────────────────────────
+// Same bin as the Squarespace checklist, different top-level key
+// (wpChecked), so both checklists can share cross-device sync
+// without overwriting each other's progress.
+const BIN_ID     = "6a41b98eda38895dfe0d7cc9";
+const MASTER_KEY = "$2a$10$LPUs6.EQOLN16OSkmeHXTekQDNXfeoYM6jz2po9OiDjqHjz73q0C6";
+const BIN_URL    = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+const STATE_KEY  = "wpChecked";
+
+// ─── Data ────────────────────────────────────────────────────────
+const PHASES = [
+  {
+    id: "prep", title: "Before You Build", emoji: "📋",
+    steps: [
+      { id:"prep-1", title:"Gather your four photos",
+        detail:"Same four studio photos used for the Squarespace plan. Before starting, know which goes where:\n\n• KevinHandley.jpg — Primary headshot, hero banner (Home page)\n• IMG_0039_new2pp25.jpg — Secondary pose, About page header\n• IMG_0059_pp3.jpg — Third photo, About page mid-section or Evaluations\n• IMG_0026_2pp4.jpg — Fourth photo, Consulting & Training page\n\nSave all four to a folder on your desktop labeled 'Site Photos' so you can drag them into Elementor quickly.",
+        tip:"WordPress/Elementor accepts JPG files directly, same as Squarespace. No resizing required, though very large files (5MB+) are worth compressing first for page speed." },
+      { id:"prep-2", title:"Have your credentials and info ready",
+        detail:"Keep these handy in a Notes window while you build:\n\n• VA License #: 0810004580\n• Phone: (540) 369-3600\n• Email: Kevin@KevinHandley.com\n• Business name: JEH Growth Strategies LLC\n• PSYPACT credential: mention in About & footer\n• Bluehost login (needed at the very start this time, not the end)\n\nYou'll be pasting these into multiple places.",
+        tip:"Don't worry about the Psychology Today badge yet — that's a placeholder step near the end, same as the Squarespace plan." },
+      { id:"prep-3", title:"Confirm your Bluehost hosting account is still active",
+        detail:"Your prior WordPress site lived on Bluehost, the same account your domain's nameservers already point to. Log in at bluehost.com and confirm:\n\n1. The hosting plan is still active (not cancelled or expired)\n2. There's enough storage/bandwidth remaining\n3. You can access cPanel or the Bluehost 'My Sites' dashboard\n\nIf it's inactive, you'll need to resubscribe before continuing — in which case treat the DNS the same as the Squarespace plan (screenshot everything, touch only the A record).",
+        tip:"If Bluehost hosting is already active, there's likely NO DNS change needed at all for this path — a real advantage over the Squarespace migration." }
+    ]
+  },
+  {
+    id:"setup", title:"WordPress & Plugin Setup", emoji:"🧩",
+    steps:[
+      { id:"setup-1", title:"Create a staging site (or install fresh WordPress)",
+        detail:"In Bluehost's dashboard, use the one-click Staging tool if available, or install a fresh WordPress instance on a subdomain/temp URL.\n\nImmediately activate a 'Coming Soon' or maintenance-mode plugin (e.g. SeedProd's free mode, or Astra's own Coming Soon toggle) so nothing is publicly visible until launch.",
+        tip:"This mirrors keeping the Squarespace site deactivated during the build — nothing goes live by accident." },
+      { id:"setup-2", title:"Install the Astra theme",
+        detail:"WordPress dashboard → Appearance → Themes → Add New. Search 'Astra' → Install → Activate.\n\nWhen prompted, install 'Astra Starter Templates' too — then filter the template library by 'Elementor' and choose a clean consulting/professional-services or health & wellness template as your starting layout." },
+      { id:"setup-3", title:"Install Elementor",
+        detail:"Plugins → Add New → search 'Elementor' → Install → Activate. This is the free core plugin (not Elementor Pro yet — that's a separate decision below)." },
+      { id:"setup-4", title:"Install WPForms Lite",
+        detail:"Plugins → Add New → search 'WPForms' → Install → Activate. This handles every lead-capture and contact form used throughout the site." },
+      { id:"setup-5", title:"Install UpdraftPlus",
+        detail:"Plugins → Add New → search 'UpdraftPlus' → Install → Activate. Then go to Settings → UpdraftPlus Backups → Settings tab and schedule automatic weekly backups, storing them off-server via a connected Google Drive or Dropbox account.",
+        tip:"On Squarespace, backups are automatic and invisible. On WordPress, this step is what replaces that — don't skip it." },
+      { id:"setup-6", title:"Install a security plugin",
+        detail:"Plugins → Add New → search 'Wordfence' (or 'Solid Security') → Install → Activate. Run the setup wizard: enable the firewall, enable login-attempt limiting, and turn on two-factor authentication for the admin account." },
+      { id:"setup-7", title:"Install Yoast SEO",
+        detail:"Plugins → Add New → search 'Yoast SEO' → Install → Activate. Run the configuration wizard (site type: Company/Organization). This also supports adding the Virginia license number visibly for E-E-A-T, per the Therapy Marketer research." },
+      { id:"setup-8", title:"Decide: Elementor Pro (~$59/year)?",
+        detail:"Elementor Pro unlocks the Theme Builder — build ONE header and ONE footer that automatically apply to every page.\n\nWithout Pro: the footer content gets added manually to each page's bottom, or via the WordPress Customizer's footer widget areas (Astra free theme includes basic ones).\n\nThis is the single biggest cost/convenience decision in this whole build.",
+        tip:"If you want the same consistent, polished header/footer Squarespace gives you automatically, Pro is worth it. If you're comfortable with a slightly more manual footer, skip it for now — you can always upgrade later." }
+    ]
+  },
+  {
+    id:"design", title:"Design & Global Branding", emoji:"🎨",
+    steps:[
+      { id:"design-1", title:"Set Elementor Global Colors",
+        detail:"In Elementor, click the hamburger menu (☰, top left of any Elementor edit screen) → Site Settings → Global Colors. Replace the default palette with these exact hex values:",
+        copy:"#1E3A5F  ← Dark navy (primary)\n#2E5C8A  ← Medium blue (secondary)\n#5B8DB8  ← Light blue (accent)\n#FFFFFF  ← White (light section backgrounds)\n#1A1A2E  ← Dark text" },
+      { id:"design-2", title:"Set Elementor Global Fonts",
+        detail:"Site Settings → Global Fonts. Both fonts are available directly in Elementor's Google Fonts list — no upload needed.",
+        copy:"Heading font: Playfair Display\nBody font: Inter" },
+      { id:"design-3", title:"Set default button and section styles",
+        detail:"Site Settings → Buttons (and Site Settings → Layout for default section padding).\n\nStyle: Solid fill (looks more authoritative for a professional practice)\nCorners: Slightly rounded (4–6px) — avoid pill-shaped\nColor: Should pull from your Global Colors automatically once set above." }
+    ]
+  },
+  {
+    id:"pages", title:"Create All 8 Pages", emoji:"📄",
+    steps:[
+      { id:"pages-1", title:"Delete or edit the starter template's placeholder pages",
+        detail:"Pages → All Pages. Delete any placeholder pages that came with the Astra Starter Template that you won't be using — keep only the Home page, which you'll rebuild with the Home content below.",
+        tip:"Move fast here — you can always undo (WordPress keeps deleted pages in Trash for 30 days)." },
+      { id:"pages-2", title:"Create your 8 main pages",
+        detail:"Pages → Add New. Create all 8 in this exact order — this becomes your navigation menu order later:",
+        copy:"1. Home\n2. About\n3. Evaluations\n4. Treatment\n5. Sleep Health\n6. Consulting & Training\n7. Workshops\n8. Contact" },
+      { id:"pages-3", title:"Set the Home page as your site's homepage",
+        detail:"Go to Settings → Reading. Under 'Your homepage displays,' select 'A static page' and choose 'Home' from the dropdown. Save.",
+        tip:"This is a step Squarespace doesn't require — WordPress defaults to showing a blog feed unless you tell it otherwise." },
+      { id:"pages-4", title:"Edit each page with Elementor",
+        detail:"On each page, click 'Edit with Elementor' (button appears above the normal WordPress editor once Elementor is installed). This opens the drag-and-drop builder you'll use for every section below." }
+    ]
+  },
+  {
+    id:"home", title:"Home Page", emoji:"🏠",
+    steps:[
+      { id:"home-1", title:"Section 1 — Hero Banner",
+        detail:"Add a Section, full width. Background: #1E3A5F navy overlay on KevinHandley.jpg. Add a Heading widget, Text Editor widget for the subtitle, and two Button widgets side by side.",
+        copy:"HEADLINE:\nDr. Kevin Handley, Ph.D.\nLicensed Clinical Psychologist\n\nSUBTITLE:\nServing individuals, families, organizations, and the courts through expert psychological evaluation, evidence-based treatment, and professional training.\n\nBUTTON 1: Work With Me  (→ Contact)\nBUTTON 2: Explore Services  (→ About)" },
+      { id:"home-2", title:"Section 2 — What I Do (3 Icon Boxes)",
+        detail:"Add a Section with a 3-column layout (Elementor stacks to 1 column on mobile automatically). One Icon Box widget per column. Background: White.",
+        copy:"CARD 1 TITLE: Psychological Evaluations\nCARD 1 BODY: Independent, objective evaluations for family courts, educational settings, and employers — including custody evaluations, independent educational evaluations, diagnostic assessments, and work clearance evaluations.\n\nCARD 2 TITLE: Treatment\nCARD 2 BODY: Evidence-based individual therapy using Acceptance and Commitment Therapy (ACT) and Cognitive Behavioral Therapy (CBT), with specialized expertise in behavioral sleep medicine.\n\nCARD 3 TITLE: Consulting & Training\nCARD 3 BODY: Organizational consulting, professional development workshops, and continuing education for healthcare systems, community organizations, and clinical teams." },
+      { id:"home-3", title:"Section 3 — About Teaser",
+        detail:"Add a 2-column Section: Image widget with IMG_0039_new2pp25.jpg on one side, Text Editor + Button on the other. Background: White.",
+        copy:"HEADING: About Dr. Handley\n\nBODY:\nKevin Handley, Ph.D. is a Licensed Clinical Psychologist and Professor of Psychology at Germanna Community College, where he directs the Paraprofessional Counseling Career Studies Certificate program. With more than 25 years of experience, he maintains a referral-based private practice in the Fredericksburg/Stafford, Virginia area specializing in behavioral sleep medicine, forensic psychological evaluations, and occupational stress interventions.\n\nHis work spans clinical practice, community college instruction, professional development, and statewide policy contributions — including legislative work establishing the Behavioral Health Technician credential in Virginia.\n\nBUTTON: Full Bio  (→ About)" },
+      { id:"home-4", title:"Section 4 — Upcoming Workshops (Placeholder)",
+        detail:"Add a Section with a Heading, subheading, and either an Icon Box row (once dates are set) or a single placeholder card for now. Background: White.",
+        copy:"HEADING: Upcoming Workshops\n\nSUBHEADING:\nPractical, evidence-based workshops for professionals and the public. Designed around small, sustainable changes that make a real difference.\n\nPLACEHOLDER CARD: Tiny Sleep Steps — Coming Soon — Join the Interest List  (button → Contact)" },
+      { id:"home-5", title:"Section 5 — Contact Form",
+        detail:"Add a Section with a Heading, subheading, and a WPForms widget (drag the WPForms widget in, then choose or build a form). Background: White.",
+        copy:"HEADING: Get in Touch\n\nSUBHEADING:\nWhether you have a referral question, are interested in a workshop, or want to explore working together — reach out and we'll be in touch.\n\nFIELDS: Name (required), Email (required), Message (optional)\n\nSUCCESS MESSAGE:\nThank you — we'll be in touch within two business days." }
+    ]
+  },
+  {
+    id:"about", title:"About Page", emoji:"👤",
+    steps:[
+      { id:"about-1", title:"Section 1 — Page Banner",
+        detail:"Section, navy background (#1E3A5F). Heading + Text Editor subheading only — no buttons needed.",
+        copy:"HEADLINE: About Dr. Kevin Handley\nSUBHEADING: Licensed Clinical Psychologist  |  Educator  |  Consultant" },
+      { id:"about-2", title:"Section 2 — Full Biography",
+        detail:"2-column Section: Image widget with a professional headshot on one side, Text Editor with the bio on the other. Background: White.",
+        copy:"Kevin Handley, Ph.D. is a Licensed Clinical Psychologist (Virginia License #0810004580) and PSYPACT credentialed practitioner, meaning he is authorized to provide telehealth services across participating states. He holds a faculty position as Professor of Psychology at Germanna Community College, where he founded and directs the Paraprofessional Counseling Career Studies Certificate program — training the next generation of behavioral health professionals in Virginia.\n\nDr. Handley maintains a referral-based private practice in the Fredericksburg and Stafford, Virginia area. His clinical work focuses on behavioral sleep medicine, forensic and educational psychological evaluations, and occupational stress.\n\nOver a career spanning more than 25 years, he has consulted with healthcare systems, community behavioral health agencies, and court systems across the region. He has contributed to Virginia state legislation establishing the Behavioral Health Technician (BHT) credential, attended the Governor's bill signing ceremony, and continues to serve in an advisory capacity to the state Senate.\n\nHis approach to all his work — clinical, academic, and consultative — is grounded in the belief that small, sustainable changes produce lasting results." },
+      { id:"about-3", title:"Section 3 — Roles & Credentials",
+        detail:"4-column Icon Box row (stacks on mobile). One icon box per role. Background: White.",
+        copy:"1. Clinical Practice — Licensed Clinical Psychologist serving the Fredericksburg/Stafford, VA area. Referral-based practice specializing in evaluations, behavioral sleep medicine, and occupational stress.\n\n2. Higher Education — Professor of Psychology at Germanna Community College. Director of the Paraprofessional Counseling Career Studies Certificate program.\n\n3. Consulting & Training — Organizational consulting, continuing education, and professional development for healthcare systems, behavioral health agencies, and community organizations.\n\n4. Forensic Work — Court-appointed and privately retained psychological evaluations for family and juvenile courts, school systems, and employers throughout the region." },
+      { id:"about-4", title:"Section 4 — Philosophy",
+        detail:"Single-column Text Editor section, no image needed. Background: White.",
+        copy:"HEADING: How I Work\n\nI work best when people are ready to stop waiting for the big breakthrough and start making the small moves that actually add up. Whether that's restructuring a sleep schedule, clarifying a vocational direction, or helping an organization build a more sustainable culture of care — the mechanism is the same: identify what's workable, start there, and build from it.\n\nIn clinical work, I draw primarily from Acceptance and Commitment Therapy and Cognitive Behavioral Therapy. In consulting and training, I bring the same evidence-based sensibility to organizational problems that rarely show up in textbooks but matter enormously in practice.\n\nI believe the best professional development is the kind people actually use on Monday morning. And the best therapy is the kind that makes itself unnecessary." },
+      { id:"about-5", title:"Section 5 — Call to Action",
+        detail:"Section, accent blue background (#2E5C8A). Centered Heading + Text + one Button widget.",
+        copy:"HEADING: Ready to connect?\n\nBODY: Whether you have a referral question, are looking for a workshop, or want to explore working together — I'd like to hear from you.\n\nBUTTON: Get in Touch  (→ Contact)" }
+    ]
+  },
+  {
+    id:"evaluations", title:"Evaluations Page", emoji:"⚖️",
+    steps:[
+      { id:"eval-1", title:"Section 1 — Banner",
+        detail:"Section, navy/dark background (#1E3A5F).",
+        copy:"HEADLINE: Psychological Evaluations\nSUBHEADING: Independent, objective, court- and school-ready psychological assessment for individuals, families, and organizations." },
+      { id:"eval-2", title:"Section 2 — Overview",
+        detail:"Single-column Text Editor. Background: White.",
+        copy:"Dr. Handley conducts a range of psychological evaluations for courts, school systems, employers, and individuals seeking diagnostic clarity. Each evaluation is conducted with independence, thoroughness, and a commitment to producing reports that are both clinically sound and practically useful to the parties who rely on them.\n\nEvaluations are conducted in the Fredericksburg/Stafford, Virginia area. Most evaluations involve structured clinical interviewing, psychological testing, record review, and collateral contacts as appropriate to the referral question." },
+      { id:"eval-3", title:"Section 3 — Evaluation Types (4 Icon Boxes)",
+        detail:"Four Icon Box widgets, 2x2 grid or 4-column row. Icons: scales (custody), graduation cap (educational), checklist (diagnostic), briefcase (work clearance). Background: White.",
+        copy:"CARD 1 — Custody & Parenting Evaluations\nComprehensive psychological evaluations for family and juvenile court proceedings. Includes psychological testing of all parties, clinical interviews, collateral contacts, and a detailed written report.\nReferrals from: Attorneys, guardians ad litem, and the court directly.\n\nCARD 2 — Independent Educational Evaluations (IEE)\nWhen families disagree with a school system's evaluation of their child, they have the right to request an IEE at public expense. Includes assessments of learning differences, cognitive functioning, academic achievement, and behavioral factors.\nReferrals from: Families, attorneys, and school systems.\n\nCARD 3 — Diagnostic Evaluations\nComprehensive psychological assessments for individuals seeking diagnostic clarity — including ADHD, mood and anxiety disorders, and other conditions affecting daily, academic, or occupational functioning.\nReferrals from: Physicians, psychiatrists, therapists, attorneys, and self-referral.\n\nCARD 4 — Work Clearance Evaluations\nFitness-for-duty and return-to-work psychological evaluations for employers, HR departments, and occupational health programs.\nReferrals from: Employers, HR departments, occupational health programs, and attorneys." },
+      { id:"eval-4", title:"Section 4 — The Referral Process",
+        detail:"Text Editor + bulleted list widget. Background: White.\n\n⚠️ HIPAA reminder: do not let the on-page contact form collect identifying client information — this section directs referrers to call or email directly instead.",
+        copy:"HEADING: How to Make a Referral\n\nEvaluation referrals are accepted by phone and email. To initiate a referral, please provide: the name of the individual(s) to be evaluated; the nature of the referral question; any court orders, releases, or authorizations relevant to the evaluation; and your contact information and preferred method of communication.\n\nDr. Handley will follow up within two business days to discuss the referral, confirm availability, and provide fee information.\n\nPhone: (540) 369-3600\nEmail: Kevin@KevinHandley.com" },
+      { id:"eval-5", title:"Section 5 — CTA",
+        detail:"Section, colored/accent background.",
+        copy:"HEADING: Ready to make a referral?\n\nBODY: Contact us by phone or email to discuss your case and confirm availability.\n\nBUTTON 1: Call (540) 369-3600  (phone link)\nBUTTON 2: Send an Email  (mailto:Kevin@KevinHandley.com)" }
+    ]
+  },
+  {
+    id:"treatment", title:"Treatment Page", emoji:"🧠",
+    steps:[
+      { id:"tx-1", title:"Section 1 — Banner",
+        detail:"Section, navy/dark background.",
+        copy:"HEADLINE: Individual Treatment\nSUBHEADING: Evidence-based therapy for adults navigating sleep difficulties, stress, and the challenges that come with doing meaningful work." },
+      { id:"tx-2", title:"Section 2 — Overview",
+        detail:"Single-column Text Editor. Background: White.",
+        copy:"Dr. Handley's private practice accepts a limited number of individual therapy clients by referral. Treatment is tailored to the individual and grounded in two complementary frameworks: Acceptance and Commitment Therapy (ACT) and Cognitive Behavioral Therapy (CBT).\n\nHe has particular expertise in behavioral sleep medicine — the application of CBT principles to insomnia and other sleep difficulties — as well as occupational stress, burnout, and the psychological demands of high-stakes professional roles.\n\nTelehealth services are available to clients across PSYPACT-participating states." },
+      { id:"tx-3", title:"Section 3 — Treatment Approaches (2 columns)",
+        detail:"2-column Section, one Icon Box or Image+Text widget per approach. Background: White.",
+        copy:"ACT — Acceptance and Commitment Therapy\nACT is a behavioral therapy that helps people develop psychological flexibility — the ability to engage fully with their lives even when difficult thoughts, feelings, or circumstances are present. Well-suited for chronic stress, work-related burnout, and anxiety.\n\nCBT — Cognitive Behavioral Therapy\nCBT is one of the most extensively researched approaches in psychology, focusing on the relationship between thoughts, feelings, and behaviors. Dr. Handley applies CBT with particular depth in behavioral sleep medicine, where it is the evidence-based first-line treatment for insomnia." },
+      { id:"tx-4", title:"Section 4 — Specialty Areas",
+        detail:"Bulleted-list widget. Background: White.",
+        copy:"Behavioral Sleep Medicine — Insomnia, sleep schedule disruption, and sleep-related anxiety using CBT-I and TranS-C.\nOccupational Stress & Burnout — For professionals in high-demand roles, including healthcare providers, first responders, and educators.\nAnxiety — Generalized anxiety, health anxiety, and performance-related concerns.\nLife Transitions — Career changes, role adjustments, and navigating significant professional or personal shifts." },
+      { id:"tx-5", title:"Section 5 — Psychology Today Badge",
+        detail:"Text Editor + Image widget placeholder for now.\n\nOnce you have the badge:\n1. Log in at therapists.psychologytoday.com → My Profile → Profile Tools\n2. Download the badge image and copy the profile URL\n3. Upload the badge here, link it to your PT profile URL\n4. Remove the placeholder text",
+        tip:"This is the same outstanding item as the Squarespace plan — doesn't block launch." },
+      { id:"tx-6", title:"Section 6 — CTA",
+        detail:"Section, colored/accent background.",
+        copy:"HEADING: Interested in working together?\n\nBODY: Dr. Handley's practice accepts new clients on a limited basis by referral. Reach out to discuss whether this is a good fit.\n\nBUTTON: Contact Us  (→ Contact)" }
+    ]
+  },
+  {
+    id:"sleep", title:"Sleep Health Page", emoji:"🌙",
+    steps:[
+      { id:"sleep-1", title:"Section 1 — Banner",
+        detail:"Section, navy/dark background. Consider a calm bedroom/night-sky stock photo — Elementor has a built-in Unsplash/Pexels image search (search 'sleep peaceful bedroom').",
+        copy:"HEADLINE: Better Sleep Starts With Small Steps\nSUBHEADING: Evidence-based guidance for people who are tired of being tired." },
+      { id:"sleep-2", title:"Section 2 — Sleep Philosophy",
+        detail:"Text Editor. Background: White.",
+        copy:"Sleep problems rarely respond well to effort. The harder most people try to sleep, the worse it gets — because sleep is something that happens when we stop demanding it.\n\nDr. Handley's approach starts where people actually are: small, sustainable changes to the four areas research shows matter most — your sleep space, your sleep schedule, how you wind down, and how you start your day.\n\nThis philosophy is captured in the Tiny Sleep Steps framework, which forms the foundation of his public workshops and individual sleep treatment." },
+      { id:"sleep-3", title:"Section 3 — Tiny Sleep Steps Workshop",
+        detail:"Icon Box or Image+Text widget with a button. Background: White.",
+        copy:"HEADING: Tiny Sleep Steps Workshop\n\nA practical, evidence-based workshop for anyone who wants to sleep better without medication. Built around CBT-I principles, walking through four domains: Sleep Space, Sleep Schedule, Wind Down, and Wake Up Well.\n\nBUTTON: See Upcoming Workshop Dates  (→ Workshops page)" },
+      { id:"sleep-4", title:"Section 4 — What Is CBT-I?",
+        detail:"Text Editor. Background: White.",
+        copy:"HEADING: Why CBT-I — Not Medication\n\nCognitive Behavioral Therapy for Insomnia (CBT-I) is the recommended first-line treatment for chronic insomnia — preferred over sleep medication by the American Academy of Sleep Medicine and most major sleep health organizations.\n\nUnlike medication, CBT-I addresses the behavioral and cognitive patterns that perpetuate insomnia, with durable results and no dependence or side effects." },
+      { id:"sleep-5", title:"Section 5 — Working With Me Individually",
+        detail:"Text Editor + Button. Background: White.",
+        copy:"HEADING: Individual Sleep Treatment\n\nFor people with more complex or persistent sleep difficulties, individual treatment typically involves six to eight sessions using CBT-I, tailored to your specific history and sleep patterns.\n\nDr. Handley's practice accepts new sleep clients on a limited basis. Telehealth is available for clients in PSYPACT-participating states.\n\nBUTTON: Inquire About Individual Treatment  (→ Contact)" }
+    ]
+  },
+  {
+    id:"consulting", title:"Consulting & Training", emoji:"💼",
+    steps:[
+      { id:"con-1", title:"Section 1 — Banner",
+        detail:"Section, navy/dark background.",
+        copy:"HEADLINE: Consulting & Professional Training\nSUBHEADING: Evidence-based organizational consulting and professional development for healthcare systems, behavioral health agencies, and workplace teams." },
+      { id:"con-2", title:"Section 2 — Overview",
+        detail:"Text Editor. Background: White.",
+        copy:"Dr. Handley brings more than 25 years of clinical, academic, and organizational experience to his consulting and training work. Whether the need is a single professional development workshop or ongoing organizational consulting, his approach is practical, evidence-based, and built for the realities of the organizations he serves.\n\nConsulting and training services are provided through JEH Growth Strategies LLC." },
+      { id:"con-3", title:"Section 3 — Organizational Consulting",
+        detail:"Text Editor with bullets + Button. Background: White.",
+        copy:"HEADING: Organizational Consulting\n\nDr. Handley consults with healthcare systems, community behavioral health organizations, and professional teams on issues at the intersection of psychology, workforce wellbeing, and organizational performance.\n\nAreas of consultation: occupational stress and burnout prevention; workforce behavioral health strategy; psychological aspects of organizational culture change; program development for behavioral health services.\n\nBUTTON: Discuss a Consulting Need  (→ Contact)" },
+      { id:"con-4", title:"Section 4 — Professional Training & CE",
+        detail:"Text Editor with bullets + Button. Background: White.",
+        copy:"HEADING: Professional Training & Continuing Education\n\nDr. Handley designs and delivers continuing education and professional development workshops for licensed professionals, paraprofessionals, and clinical teams.\n\nTopics include: Behavioral Sleep Medicine and CBT-I; Overcoming the Imposter Phenomenon (built around Dr. Valerie Young's framework and Dr. Handley's FLEX model); Managing Occupational Stress; AI as a Thinking Partner in Professional Practice; custom topics by request.\n\nDr. Handley's training model — Learn One, Do One, Teach One — is a dual-session structure where participants first apply skills to themselves before learning to use them with clients or teams.\n\nBUTTON: Inquire About Training  (→ Contact)" },
+      { id:"con-5", title:"Section 5 — Workshops for Organizations (3 cards)",
+        detail:"3-column Icon Box row. Background: White.",
+        copy:"HEADING: Workshop Series for Businesses & Groups\n\nThese workshops are available for employee wellness programs, professional associations, healthcare teams, and community organizations.\n\nCARD 1: Tiny Sleep Steps — a workplace sleep health workshop built on CBT-I principles.  (→ Sleep Health page)\nCARD 2: Managing Stress: Simple Steps to Feeling Less Overwhelmed — practical stress management for sustained occupational stress.  (→ Workshops page)\nCARD 3: Improving Your Mood: Simple Steps to Feeling Like Yourself Again — behavioral strategies for cumulative pressure and transitions.  (→ Workshops page)" },
+      { id:"con-6", title:"Section 6 — CTA",
+        detail:"Section, colored/accent background.",
+        copy:"HEADING: Let's talk about your organization's needs.\n\nBODY: Whether you're looking for a one-time training, an ongoing consulting relationship, or a custom workshop for your team — reach out to start the conversation.\n\nBUTTON: Contact Us  (→ Contact)" }
+    ]
+  },
+  {
+    id:"workshops", title:"Workshops Page", emoji:"🎓",
+    steps:[
+      { id:"ws-1", title:"Section 1 — Banner",
+        detail:"Section, dark/colored background.",
+        copy:"HEADLINE: Upcoming Workshops\nSUBHEADING: Practical, evidence-based workshops for professionals and the public. Designed to be immediately useful — not just informative." },
+      { id:"ws-2", title:"Section 2 — Workshop Cards (3)",
+        detail:"Three Icon Box widgets, each linking to the registration page for that workshop once built — until then, link to the interest-list form via an anchor link (#interest-list). Background: White.",
+        copy:"CARD 1: Tiny Sleep Steps\nSubtitle: A workshop on sleep health and CBT-I. Duration: ~90 min. Audience: General public, employees, anyone dealing with poor sleep.\n\nCARD 2: Managing Stress: Simple Steps to Feeling Less Overwhelmed\nSubtitle: A workshop on occupational stress and practical coping. Duration: ~90 min. Audience: Professionals, employees, caregivers.\n\nCARD 3: Improving Your Mood: Simple Steps to Feeling Like Yourself Again\nSubtitle: A workshop on mood, motivation, and behavioral activation. Duration: ~90 min. Audience: General public, employees, anyone experiencing persistent low mood." },
+      { id:"ws-3", title:"Section 3 — Interest List Form",
+        detail:"WPForms widget. In the widget's Advanced tab, set the CSS ID to 'interest-list' so the card buttons above can jump straight to it.",
+        copy:"HEADING: Stay in the Loop\n\nSUBHEADING:\nWorkshop dates will be announced soon. Add your name to the interest list and you'll be the first to know — and the first to register." }
+    ]
+  },
+  {
+    id:"contact", title:"Contact Page", emoji:"📬",
+    steps:[
+      { id:"contact-1", title:"Section 1 — Banner",
+        detail:"Section, dark/colored background.",
+        copy:"HEADLINE: Get in Touch\nSUBHEADING: Referral inquiries, workshop questions, and general inquiries welcome." },
+      { id:"contact-2", title:"Section 2 — Intro Text",
+        detail:"Text Editor. Background: White.",
+        copy:"Use this form for general inquiries — including referral questions, workshop interest, consulting conversations, and anything else. Dr. Handley or a member of his team will follow up within two business days.\n\nPlease do not submit confidential client information through this form." },
+      { id:"contact-3", title:"Section 3 — Contact Form",
+        detail:"WPForms widget.\n\nFIELDS: Name (required), Email (required), Phone (optional), Message (required)",
+        copy:"SUCCESS MESSAGE:\nThank you — we'll be in touch within two business days." },
+      { id:"contact-4", title:"Section 4 — Contact Info Block",
+        detail:"Text Editor. Background: White.",
+        copy:"Kevin Handley, Ph.D.\nLicensed Clinical Psychologist\nJEH Growth Strategies LLC\n\nPhone: (540) 369-3600\nEmail: Kevin@KevinHandley.com\n\nServing the Fredericksburg and Stafford, Virginia area.\nTelehealth available in PSYPACT-participating states." }
+    ]
+  },
+  {
+    id:"nav-footer", title:"Navigation & Footer", emoji:"🔗",
+    steps:[
+      { id:"nav-1", title:"Build the main navigation menu",
+        detail:"Appearance → Menus → create a new menu named 'Main.' Add all 8 pages in order, then assign the menu to the 'Primary Menu' location (Astra's theme location). Save.",
+        copy:"Home | About | Evaluations | Treatment | Sleep Health | Consulting & Training | Workshops | Contact",
+        tip:"If the menu feels crowded on mobile, drag Evaluations, Treatment, and Sleep Health slightly right in the Menus screen to nest them under a 'Services' dropdown — WordPress supports this natively." },
+      { id:"nav-2", title:"Build the footer",
+        detail:"If using Elementor Pro: Templates → Theme Builder → Add New → Footer, build it once here. If staying on free Elementor: add this content as a Section at the bottom of the Home page for now, and note it needs copying to every other page until Pro is added.",
+        copy:"LEFT COLUMN:\nKevin Handley, Ph.D.\nLicensed Clinical Psychologist\nJEH Growth Strategies LLC\n(540) 369-3600\nKevin@KevinHandley.com\nVirginia License #0810004580\n\nCENTER COLUMN:\nHome | About | Evaluations | Treatment | Sleep Health | Consulting & Training | Workshops | Contact\n\nRIGHT COLUMN:\n[Psychology Today badge — add when available]\n\nBOTTOM BAR:\n© 2025 JEH Growth Strategies LLC  |  All Rights Reserved  |  Privacy Policy  |  Terms of Use",
+        tip:"Your license number in the footer is an E-E-A-T signal Google rewards — don't skip it, same as the Squarespace plan." },
+      { id:"nav-3", title:"Review the auto-generated Privacy Policy page",
+        detail:"WordPress core creates a draft Privacy Policy page automatically (Settings → Privacy). Review and publish it — but you'll need to write or adapt Terms of Use separately, since WordPress doesn't generate that one.",
+        tip:"Squarespace and Skillplate both auto-generate both documents; this is a small extra step unique to WordPress." }
+    ]
+  },
+  {
+    id:"landing", title:"Workshop Landing Pages", emoji:"🎟️",
+    steps:[
+      { id:"land-1", title:"Build when workshop dates are confirmed",
+        detail:"Create a new Page per workshop, then under Elementor's page settings set the Template to 'Elementor Canvas' (full width, no header/footer) so the visitor's focus stays on registration.\n\nBuild the first one fully, then duplicate the page (Pages → hover → Clone) and update content for the other two.",
+        copy:"Section 1: Banner with workshop name, date, time, location/virtual (dark/colored)\nSection 2: What you'll learn — 4–6 bullet takeaways (light)\nSection 3: Who this is for — brief audience description (light)\nSection 4: About the facilitator — short bio + photo (light)\nSection 5: Countdown Timer widget (Elementor Pro has one built-in; free Elementor has third-party alternatives)\nSection 6: Registration button — link to ThriveCart checkout for that workshop (colored)\nSection 7: FAQ — Accordion widget, 3–4 questions (light)",
+        tip:"Since Dr. Handley already holds a lifetime ThriveCart account, use ThriveCart's hosted checkout link on the registration button rather than adding a WordPress e-commerce plugin — keeps payment processing off the WordPress site entirely." }
+    ]
+  },
+  {
+    id:"security", title:"Security & Maintenance", emoji:"🔒",
+    steps:[
+      { id:"sec-1", title:"Confirm backup schedule is active",
+        detail:"Go to UpdraftPlus settings and confirm the automatic weekly backup schedule is running and connected to off-server storage (Google Drive/Dropbox)." },
+      { id:"sec-2", title:"Confirm the security plugin's firewall is active",
+        detail:"Open Wordfence (or Solid Security) and confirm: firewall enabled, login-attempt limiting enabled, two-factor authentication set up on the admin account." },
+      { id:"sec-3", title:"Confirm SSL (https) is active",
+        detail:"Bluehost typically auto-provisions a free SSL certificate (Let's Encrypt) for hosted domains. Confirm the site loads at https:// without a browser warning." },
+      { id:"sec-4", title:"Set an update cadence",
+        detail:"Plan to check WordPress core, Astra, and all plugins for updates at least monthly — outdated plugins are the most common way WordPress sites get compromised.",
+        tip:"Given the assistant availability concern, consider budgeting for a WordPress maintenance service ($20–40/month typically) if neither you nor your assistant wants to own this ongoing checklist." }
+    ]
+  },
+  {
+    id:"launch", title:"Pre-Launch Checklist", emoji:"✅",
+    steps:[
+      { id:"launch-1", title:"Preview on desktop, tablet, and mobile",
+        detail:"In Elementor, use the responsive-mode icon in the bottom toolbar to check all three sizes on every page.\n\nLook for:\n• Text overflow or cut-off headlines\n• Images too large or too small\n• Buttons too close together on mobile\n• Navigation collapsing properly\n• Footer readable on all sizes" },
+      { id:"launch-2", title:"Test every navigation link",
+        detail:"Click through every page from the nav bar. Verify:\n• All 8 pages load\n• Every button links to the correct destination\n• Footer links work\n• Contact form success message appears after submitting" },
+      { id:"launch-3", title:"Submit a test contact form",
+        detail:"Go to the Contact page and submit a test entry using your own name and email.\n\nThen check WPForms → Entries in the dashboard — confirm the submission appears, and confirm a notification email arrived at Kevin@KevinHandley.com." },
+      { id:"launch-4", title:"Confirm DNS is correctly pointed (if it changed at all)",
+        detail:"If you stayed on the existing Bluehost hosting account, this is likely already correct — skip to the next step.\n\nIf you set up new hosting elsewhere: ⚠️ SCREENSHOT YOUR ENTIRE DNS ZONE before touching anything, update only the A record to the new host's IP, and do NOT touch MX, SPF, DKIM, or DMARC records — those protect Proton Mail.",
+        tip:"Propagation takes 1–24 hours if a change is needed. Proton Mail continues working uninterrupted as long as MX/SPF/DKIM/DMARC are left alone." },
+      { id:"launch-5", title:"Deactivate maintenance mode and go live",
+        detail:"Turn off the 'Coming Soon' / maintenance-mode plugin. Open KevinHandley.com in an incognito browser window and confirm it loads your new homepage." },
+      { id:"launch-6", title:"Add Psychology Today badge (post-launch)",
+        detail:"Once you have your PT profile URL:\n\n1. Download the PT badge image from your PT profile settings\n2. Go to Treatment page → PT placeholder section\n3. Upload badge image → link to your PT profile URL\n4. Also add badge to footer right column\n\nThis does not block launch — add it whenever your PT profile is ready.",
+        tip:"This is the only remaining post-launch item, same as the Squarespace plan." }
+    ]
+  }
+];
+
+// ─── State ───────────────────────────────────────────────────────
+let checked   = {};
+let activeIdx = 0;
+let saveTimer = null;
+
+const allSteps = PHASES.flatMap(p => p.steps);
+const total    = allSteps.length;
+
+// ─── JSONBin helpers ─────────────────────────────────────────────
+// Reads/writes under STATE_KEY so this checklist's progress lives
+// alongside the Squarespace checklist's "checked" key in the same
+// bin without clobbering it. Always re-fetch before writing so a
+// concurrent save from the other checklist isn't lost.
+async function loadFromBin() {
+  const res  = await fetch(BIN_URL + "/latest", {
+    headers: { "X-Master-Key": MASTER_KEY }
+  });
+  const data = await res.json();
+  return data.record?.[STATE_KEY] || {};
+}
+
+async function saveToBin(checkedState) {
+  let current = {};
+  try {
+    const res  = await fetch(BIN_URL + "/latest", {
+      headers: { "X-Master-Key": MASTER_KEY }
+    });
+    const data = await res.json();
+    current = data.record || {};
+  } catch (e) { /* fall back to writing just our own key */ }
+
+  current[STATE_KEY] = checkedState;
+
+  await fetch(BIN_URL, {
+    method:  "PUT",
+    headers: { "Content-Type": "application/json", "X-Master-Key": MASTER_KEY },
+    body:    JSON.stringify(current)
+  });
+}
+
+// ─── UI helpers ──────────────────────────────────────────────────
+function setSaveStatus(msg, color) {
+  const el = document.getElementById("save-status");
+  el.textContent  = msg;
+  el.style.color  = color || "rgba(255,255,255,0.75)";
+}
+
+function updateProgress() {
+  const done = Object.values(checked).filter(Boolean).length;
+  const pct  = Math.round((done / total) * 100);
+  document.getElementById("progress-pct").textContent  = pct + "%";
+  document.getElementById("progress-sub").textContent  = done + " of " + total + " steps";
+  document.getElementById("progress-bar-fill").style.width = pct + "%";
+}
+
+function scheduleSave() {
+  clearTimeout(saveTimer);
+  setSaveStatus("💾 Saving…");
+  saveTimer = setTimeout(async () => {
+    try {
+      await saveToBin(checked);
+      setSaveStatus("✓ Progress saved", "#86efac");
+      setTimeout(() => setSaveStatus(""), 3000);
+    } catch(e) {
+      setSaveStatus("⚠ Save failed — check connection", "#fca5a5");
+    }
+  }, 800);
+}
+
+function toggleCheck(stepId) {
+  checked[stepId] = !checked[stepId];
+  updateProgress();
+  scheduleSave();
+  renderPhase();
+  renderSidebar();
+}
+
+function toggleExpand(stepId) {
+  const body = document.getElementById("body-" + stepId);
+  const arrow = document.getElementById("arrow-" + stepId);
+  if (!body) return;
+  const open = body.classList.toggle("open");
+  arrow.textContent = open ? "▲" : "▼";
+}
+
+// ─── Render ──────────────────────────────────────────────────────
+function renderSidebar() {
+  const sb = document.getElementById("sidebar");
+  sb.innerHTML = PHASES.map((p, i) => {
+    const done    = p.steps.every(s => checked[s.id]);
+    const started = p.steps.some(s => checked[s.id]);
+    const active  = i === activeIdx;
+    const emoji   = done ? "✅" : started ? "🔵" : p.emoji;
+    return `<button class="phase-btn ${active ? "active" : ""}" onclick="goPhase(${i})">
+      <span class="emoji">${emoji}</span>
+      <span class="label">${p.title}</span>
+    </button>`;
+  }).join("");
+}
+
+function renderPhase() {
+  const phase = PHASES[activeIdx];
+  const doneCt = phase.steps.filter(s => checked[s.id]).length;
+
+  document.getElementById("phase-title").textContent = phase.emoji + " " + phase.title;
+  document.getElementById("phase-sub").textContent   = doneCt + " of " + phase.steps.length + " steps complete";
+
+  document.getElementById("steps-list").innerHTML = phase.steps.map((step, i) => {
+    const done = !!checked[step.id];
+    const copyHtml = step.copy ? `
+      <div class="copy-block">
+        <div class="copy-block-header">
+          <span class="copy-label">Copy / Paste Text</span>
+          <button class="copy-btn" id="cbtn-${step.id}" onclick="copyText('${step.id}')">Copy</button>
+        </div>
+        <pre class="copy-pre" id="cpre-${step.id}">${escHtml(step.copy)}</pre>
+      </div>` : "";
+    const tipHtml = step.tip ? `<div class="tip">💡 ${escHtml(step.tip)}</div>` : "";
+    return `
+      <div class="step-card ${done ? "done" : ""}" id="card-${step.id}">
+        <div class="step-header" onclick="toggleExpand('${step.id}')">
+          <div class="step-checkbox" onclick="event.stopPropagation(); toggleCheck('${step.id}')">${done ? "✓" : ""}</div>
+          <span class="step-num">${String(i+1).padStart(2,"0")}</span>
+          <span class="step-title">${escHtml(step.title)}</span>
+          <span class="step-arrow" id="arrow-${step.id}">▼</span>
+        </div>
+        <div class="step-body" id="body-${step.id}">
+          <div class="step-detail">${escHtml(step.detail)}</div>
+          ${copyHtml}
+          ${tipHtml}
+          <button class="mark-btn ${done ? "undo" : ""}" onclick="toggleCheck('${step.id}')">
+            ${done ? "↩ Mark incomplete" : "✓ Mark complete"}
+          </button>
+        </div>
+      </div>`;
+  }).join("");
+
+  // Phase nav
+  const nav = document.getElementById("phase-nav");
+  const prevBtn = activeIdx > 0
+    ? `<button class="nav-btn prev" onclick="goPhase(${activeIdx-1})">← Previous</button>` : "<div></div>";
+  const nextBtn = activeIdx < PHASES.length - 1
+    ? `<button class="nav-btn next" onclick="goPhase(${activeIdx+1})">Next Phase →</button>` : "";
+  nav.innerHTML = prevBtn + nextBtn;
+}
+
+function goPhase(idx) {
+  activeIdx = idx;
+  renderSidebar();
+  renderPhase();
+  document.getElementById("main").scrollTop = 0;
+}
+
+function copyText(stepId) {
+  const step = allSteps.find(s => s.id === stepId);
+  if (!step || !step.copy) return;
+  navigator.clipboard.writeText(step.copy).then(() => {
+    const btn = document.getElementById("cbtn-" + stepId);
+    if (btn) {
+      btn.textContent = "✓ Copied!";
+      btn.classList.add("copied");
+      setTimeout(() => { btn.textContent = "Copy"; btn.classList.remove("copied"); }, 2000);
+    }
+  });
+}
+
+function escHtml(str) {
+  return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+// ─── Init ────────────────────────────────────────────────────────
+window.goPhase    = goPhase;
+window.toggleCheck  = toggleCheck;
+window.toggleExpand = toggleExpand;
+window.copyText     = copyText;
+
+(async () => {
+  try {
+    checked = await loadFromBin();
+  } catch(e) {
+    checked = {};
+  }
+  document.getElementById("loading").style.display = "none";
+  const app = document.getElementById("app");
+  app.style.display = "flex";
+  updateProgress();
+  renderSidebar();
+  renderPhase();
+})();
+</script>
+</body>
+</html>
